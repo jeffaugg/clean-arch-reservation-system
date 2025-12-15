@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  bd:
+    image: postgres:16
+    container_name: database_reservation_system
+    restart: "no"
+    ports: 
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - reservation_system_network
+volumes:
+  postgres_data:
+networks:
+  reservation_system_network:
+    driver: bridge  
