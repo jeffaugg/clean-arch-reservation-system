@@ -12,3 +12,147 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  phone        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  listings     Property[]    @relation("HostProperties")
+  reservations Reservation[] @relation("GuestReservations")
+  reviews      Review[]
+
+  @@map("users")
+}
+
+model Property {
+  id          String   @id @default(uuid())
+  hostId      String   @map("host_id")
+  title       String
+  description String   @db.Text
+  address     String
+  city        String
+  latitude    Decimal  @db.Decimal(10, 8)
+  longitude   Decimal  @db.Decimal(11, 8)
+  maxGuests   Int      @map("max_guests")
+  basePrice   Decimal  @map("base_price") @db.Decimal(10, 2)
+  cleaningFee Decimal  @map("cleaning_fee") @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  host         User                   @relation("HostProperties", fields: [hostId], references: [id])
+  images       PropertyImage[]
+  amenities    PropertyAmenity[]
+  calendar     AvailabilityCalendar[]
+  reservations Reservation[]
+
+  @@index([city])
+  @@map("properties")
+}
+
+model PropertyImage {
+  id         String  @id @default(uuid())
+  propertyId String  @map("property_id")
+  url        String
+  isMain     Boolean @default(false) @map("is_main")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("property_images")
+}
+
+model Amenity {
+  id      String @id @default(uuid())
+  name    String
+  iconUrl String @map("icon_url")
+
+  properties PropertyAmenity[]
+
+  @@map("amenities")
+}
+
+model PropertyAmenity {
+  propertyId String @map("property_id")
+  amenityId  String @map("amenity_id")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenity  Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@id([propertyId, amenityId])
+  @@map("property_amenities")
+}
+
+model AvailabilityCalendar {
+  id            String   @id @default(uuid())
+  propertyId    String   @map("property_id")
+  date          DateTime @db.Date
+  isBlocked     Boolean  @default(false) @map("is_blocked")
+  priceOverride Decimal? @map("price_override") @db.Decimal(10, 2)
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, date])
+  @@map("availability_calendar")
+}
+
+model Reservation {
+  id         String            @id @default(uuid())
+  propertyId String            @map("property_id")
+  guestId    String            @map("guest_id")
+  checkIn    DateTime          @map("check_in") @db.Date
+  checkOut   DateTime          @map("check_out") @db.Date
+  guestCount Int               @map("guest_count")
+  totalPrice Decimal           @map("total_price") @db.Decimal(10, 2)
+  status     ReservationStatus @default(PENDING)
+  createdAt  DateTime          @default(now()) @map("created_at")
+
+  property Property  @relation(fields: [propertyId], references: [id])
+  guest    User      @relation("GuestReservations", fields: [guestId], references: [id])
+  payments Payment[]
+  review   Review?
+
+  @@map("reservations")
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  reservationId String        @map("reservation_id")
+  provider      String
+  transactionId String        @map("transaction_id")
+  amount        Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus @default(PENDING)
+  processedAt   DateTime      @default(now()) @map("processed_at")
+
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+
+  @@map("payments")
+}
+
+model Review {
+  id            String   @id @default(uuid())
+  reservationId String   @unique @map("reservation_id")
+  authorId      String   @map("author_id")
+  rating        Int
+  comment       String   @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+  author      User        @relation(fields: [authorId], references: [id])
+
+  @@map("reviews")
+}
