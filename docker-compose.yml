@@ -15,8 +15,23 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - reservation_system_network
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: ["server","/data","--console-address",":9001"]
+    networks:
+      - reservation_system_network
 volumes:
   postgres_data:
+  minio_data:
 networks:
   reservation_system_network:
     driver: bridge  
