@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "infisical run -- nest build",
+    "db:generate": "infisical run -- prisma generate",
     "start": "infisical run --  nest start",
     "start:dev": "infisical run -- nest start --watch",
     "start:debug": "nest start --debug --watch",
