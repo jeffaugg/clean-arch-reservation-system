@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "infisical run -- nest build",
+    "db:generate": "infisical run -- prisma generate",
     "start": "infisical run --  nest start",
     "start:dev": "infisical run -- nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -25,6 +26,7 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.2.3",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "bcryptjs": "^3.0.3",
