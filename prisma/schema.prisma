@@ -79,7 +79,7 @@ model PropertyImage {
 
 model Amenity {
   id      String @id @default(uuid())
-  name    String
+  name    String @unique
   iconUrl String @map("icon_url")
 
   properties PropertyAmenity[]
