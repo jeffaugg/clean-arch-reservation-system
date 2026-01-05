@@ -15,7 +15,8 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "prepare": "husky install",
     "docker-compose": "infisical run -- docker compose",
-    "migrate:dev": "infisical run -- prisma migrate dev"
+    "migrate:dev": "infisical run -- prisma migrate dev",
+    "seed": "infisical run -- ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.958.0",

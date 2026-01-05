@@ -1,10 +1,11 @@
 import { Global, Module } from "@nestjs/common";
-import { AuthModule } from "./modules/auth/auth.module.js";
+import { ConfigModule } from "@nestjs/config";
+import { APP_GUARD } from "@nestjs/core";
 import { AppController } from "./app.controller.js";
 import { AppService } from "./app.service.js";
-import { APP_GUARD } from "@nestjs/core";
+import { AmenityModule } from "./modules/amenities/amenity.module.js";
 import { AuthGuard } from "./modules/auth/auth.guard.js";
-import { ConfigModule } from "@nestjs/config";
+import { AuthModule } from "./modules/auth/auth.module.js";
 import { StorageModule } from "./modules/storage/storage.module.js";
 import { StorageProviderModule } from "./shared/container/providers/storage/storage.module.js";
 
@@ -14,6 +15,7 @@ import { StorageProviderModule } from "./shared/container/providers/storage/stor
     AuthModule,
     StorageModule,
     StorageProviderModule,
+    AmenityModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
