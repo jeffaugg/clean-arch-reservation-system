@@ -4,6 +4,9 @@ import { PrismaService } from "src/shared/database/prisma.service";
 import {
   CreatePropertyData,
   IPropertyRepository,
+  ListPropertiesFilters,
+  PaginatedResult,
+  PaginationParams,
 } from "./interface/property.repository";
 
 @Injectable()
@@ -18,6 +21,63 @@ export class PropertyRepository implements IPropertyRepository {
     });
 
     return count === amenityIds.length;
+  }
+
+  async listProperties(
+    filters: ListPropertiesFilters,
+    pagination: PaginationParams
+  ): Promise<PaginatedResult<any>> {
+    const where: any = {};
+
+    if (filters.city) {
+      where.city = {
+        contains: filters.city,
+        mode: "insensitive",
+      };
+    }
+
+    if (filters.maxPrice) {
+      where.basePrice = {
+        lte: new Decimal(filters.maxPrice),
+      };
+    }
+
+    if (filters.guests) {
+      where.maxGuests = {
+        gte: filters.guests,
+      };
+    }
+
+    const skip = (pagination.page - 1) * pagination.limit;
+
+    const [data, total] = await Promise.all([
+      this.prisma.property.findMany({
+        where,
+        skip,
+        take: pagination.limit,
+        select: {
+          id: true,
+          title: true,
+          city: true,
+          maxGuests: true,
+          basePrice: true,
+          images: {
+            where: { isMain: true },
+            select: {
+              id: true,
+              url: true,
+            },
+            take: 1,
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      this.prisma.property.count({ where }),
+    ]);
+
+    return { data, total };
   }
 
   async createProperty(data: CreatePropertyData) {
