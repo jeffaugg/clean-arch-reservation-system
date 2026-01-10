@@ -7,6 +7,7 @@ import {
   ListPropertiesFilters,
   PaginatedResult,
   PaginationParams,
+  SetAvailabilityData,
 } from "./interface/property.repository";
 
 @Injectable()
@@ -140,6 +141,56 @@ export class PropertyRepository implements IPropertyRepository {
             name: true,
           },
         },
+      },
+    });
+  }
+
+  async findPropertyHostId(propertyId: string): Promise<string | null> {
+    const property = await this.prisma.property.findUnique({
+      where: { id: propertyId },
+      select: { hostId: true },
+    });
+
+    return property?.hostId || null;
+  }
+
+  async hasConfirmedReservationOnDate(
+    propertyId: string,
+    date: Date
+  ): Promise<boolean> {
+    const count = await this.prisma.reservation.count({
+      where: {
+        propertyId,
+        status: "CONFIRMED",
+        checkIn: { lte: date },
+        checkOut: { gt: date },
+      },
+    });
+
+    return count > 0;
+  }
+
+  async setAvailability(data: SetAvailabilityData) {
+    return this.prisma.availabilityCalendar.upsert({
+      where: {
+        propertyId_date: {
+          propertyId: data.propertyId,
+          date: data.date,
+        },
+      },
+      create: {
+        propertyId: data.propertyId,
+        date: data.date,
+        isBlocked: data.isBlocked,
+        priceOverride: data.priceOverride
+          ? new Decimal(data.priceOverride)
+          : null,
+      },
+      update: {
+        isBlocked: data.isBlocked,
+        priceOverride: data.priceOverride
+          ? new Decimal(data.priceOverride)
+          : null,
       },
     });
   }

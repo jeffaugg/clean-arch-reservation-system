@@ -16,14 +16,17 @@ import {
 } from "@nestjs/swagger";
 import { ActiveUserId } from "src/shared/decorators/activeUserId";
 import { IsPublic } from "src/shared/decorators/isPublic";
+import { AvailabilityResponseDto } from "../dto/availability-response.dto";
 import { CreatePropertyDto } from "../dto/create-property.dto";
 import { ListPropertiesQueryDto } from "../dto/list-properties-query.dto";
 import { PaginatedPropertiesDto } from "../dto/paginated-properties.dto";
 import { PropertyDetailsResponseDto } from "../dto/property-details-response.dto";
 import { PropertyResponseDto } from "../dto/property-response.dto";
+import { SetAvailabilityDto } from "../dto/set-availability.dto";
 import { CreatePropertyUseCase } from "../use-cases/create-property.use-case";
 import { GetPropertyDetailsUseCase } from "../use-cases/get-property-details.use-case";
 import { ListPropertiesUseCase } from "../use-cases/list-properties.use-case";
+import { SetAvailabilityUseCase } from "../use-cases/set-availability.use-case";
 
 @ApiTags("properties")
 @Controller("properties")
@@ -31,7 +34,8 @@ export class PropertyController {
   constructor(
     private readonly createPropertyUseCase: CreatePropertyUseCase,
     private readonly listPropertiesUseCase: ListPropertiesUseCase,
-    private readonly getPropertyDetailsUseCase: GetPropertyDetailsUseCase
+    private readonly getPropertyDetailsUseCase: GetPropertyDetailsUseCase,
+    private readonly setAvailabilityUseCase: SetAvailabilityUseCase
   ) {}
 
   @Get()
@@ -90,5 +94,40 @@ export class PropertyController {
     @ActiveUserId() hostId: string
   ): Promise<PropertyResponseDto> {
     return this.createPropertyUseCase.execute(hostId, dto);
+  }
+
+  @Post(":id/availability")
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Gerenciar disponibilidade de um imóvel" })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "Disponibilidade configurada com sucesso",
+    type: AvailabilityResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "Imóvel não encontrado",
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: "Apenas o anfitrião pode gerenciar disponibilidade",
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: "Data possui reserva confirmada",
+  })
+  async setAvailability(
+    @Param("id") propertyId: string,
+    @Body() dto: SetAvailabilityDto,
+    @ActiveUserId() hostId: string
+  ): Promise<AvailabilityResponseDto> {
+    return this.setAvailabilityUseCase.execute({
+      propertyId,
+      hostId,
+      date: dto.date,
+      isBlocked: dto.isBlocked,
+      priceOverride: dto.priceOverride,
+    });
   }
 }

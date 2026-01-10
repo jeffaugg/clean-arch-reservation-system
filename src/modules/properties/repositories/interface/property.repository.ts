@@ -29,6 +29,13 @@ export interface PaginatedResult<T> {
   total: number;
 }
 
+export interface SetAvailabilityData {
+  propertyId: string;
+  date: Date;
+  isBlocked: boolean;
+  priceOverride?: number;
+}
+
 export abstract class IPropertyRepository {
   abstract createProperty(data: CreatePropertyData): Promise<any>;
   abstract validateAmenityIds(amenityIds: string[]): Promise<boolean>;
@@ -37,4 +44,10 @@ export abstract class IPropertyRepository {
     pagination: PaginationParams
   ): Promise<PaginatedResult<any>>;
   abstract findById(propertyId: string): Promise<any | null>;
+  abstract findPropertyHostId(propertyId: string): Promise<string | null>;
+  abstract hasConfirmedReservationOnDate(
+    propertyId: string,
+    date: Date
+  ): Promise<boolean>;
+  abstract setAvailability(data: SetAvailabilityData): Promise<any>;
 }
