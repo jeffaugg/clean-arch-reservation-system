@@ -119,4 +119,28 @@ export class PropertyRepository implements IPropertyRepository {
       return property;
     });
   }
+
+  async findById(propertyId: string) {
+    return this.prisma.property.findUnique({
+      where: { id: propertyId },
+      include: {
+        images: {
+          orderBy: {
+            isMain: "desc",
+          },
+        },
+        amenities: {
+          include: {
+            amenity: true,
+          },
+        },
+        host: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+  }
 }

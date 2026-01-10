@@ -36,4 +36,5 @@ export abstract class IPropertyRepository {
     filters: ListPropertiesFilters,
     pagination: PaginationParams
   ): Promise<PaginatedResult<any>>;
+  abstract findById(propertyId: string): Promise<any | null>;
 }

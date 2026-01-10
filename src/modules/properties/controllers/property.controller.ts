@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Query,
 } from "@nestjs/common";
@@ -18,8 +19,10 @@ import { IsPublic } from "src/shared/decorators/isPublic";
 import { CreatePropertyDto } from "../dto/create-property.dto";
 import { ListPropertiesQueryDto } from "../dto/list-properties-query.dto";
 import { PaginatedPropertiesDto } from "../dto/paginated-properties.dto";
+import { PropertyDetailsResponseDto } from "../dto/property-details-response.dto";
 import { PropertyResponseDto } from "../dto/property-response.dto";
 import { CreatePropertyUseCase } from "../use-cases/create-property.use-case";
+import { GetPropertyDetailsUseCase } from "../use-cases/get-property-details.use-case";
 import { ListPropertiesUseCase } from "../use-cases/list-properties.use-case";
 
 @ApiTags("properties")
@@ -27,7 +30,8 @@ import { ListPropertiesUseCase } from "../use-cases/list-properties.use-case";
 export class PropertyController {
   constructor(
     private readonly createPropertyUseCase: CreatePropertyUseCase,
-    private readonly listPropertiesUseCase: ListPropertiesUseCase
+    private readonly listPropertiesUseCase: ListPropertiesUseCase,
+    private readonly getPropertyDetailsUseCase: GetPropertyDetailsUseCase
   ) {}
 
   @Get()
@@ -49,6 +53,23 @@ export class PropertyController {
       maxPrice: query.maxPrice ? Number(query.maxPrice) : undefined,
       guests: query.guests ? Number(query.guests) : undefined,
     });
+  }
+
+  @Get(":id")
+  @IsPublic()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Buscar detalhes completos de um imóvel" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "Detalhes do imóvel",
+    type: PropertyDetailsResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "Imóvel não encontrado",
+  })
+  async getById(@Param("id") id: string): Promise<PropertyDetailsResponseDto> {
+    return this.getPropertyDetailsUseCase.execute(id);
   }
 
   @Post()
