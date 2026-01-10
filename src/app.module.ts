@@ -6,6 +6,7 @@ import { AppService } from "./app.service.js";
 import { AmenityModule } from "./modules/amenities/amenity.module.js";
 import { AuthGuard } from "./modules/auth/auth.guard.js";
 import { AuthModule } from "./modules/auth/auth.module.js";
+import { PropertyModule } from "./modules/properties/property.module.js";
 import { StorageModule } from "./modules/storage/storage.module.js";
 import { StorageProviderModule } from "./shared/container/providers/storage/storage.module.js";
 
@@ -16,6 +17,7 @@ import { StorageProviderModule } from "./shared/container/providers/storage/stor
     StorageModule,
     StorageProviderModule,
     AmenityModule,
+    PropertyModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

@@ -1,3 +1,4 @@
+import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { ZodValidationPipe } from "nestjs-zod";
@@ -6,7 +7,13 @@ import { AppModule } from "./app.module";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(new ZodValidationPipe());
+  app.useGlobalPipes(
+    new ZodValidationPipe(),
+    new ValidationPipe({
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    })
+  );
 
   const config = new DocumentBuilder()
     .setTitle("Clean Architecture Reservation System")
