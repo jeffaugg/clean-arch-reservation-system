@@ -21,5 +21,6 @@ import { SetAvailabilityUseCase } from "./use-cases/set-availability.use-case";
       useClass: PropertyRepository,
     },
   ],
+  exports: [IPropertyRepository],
 })
 export class PropertyModule {}

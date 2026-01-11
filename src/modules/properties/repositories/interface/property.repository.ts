@@ -1,3 +1,5 @@
+import { AvailabilityCalendar, Property } from "generated/prisma/client";
+
 export interface CreatePropertyData {
   hostId: string;
   title: string;
@@ -41,13 +43,18 @@ export abstract class IPropertyRepository {
   abstract validateAmenityIds(amenityIds: string[]): Promise<boolean>;
   abstract listProperties(
     filters: ListPropertiesFilters,
-    pagination: PaginationParams
+    pagination: PaginationParams,
   ): Promise<PaginatedResult<any>>;
-  abstract findById(propertyId: string): Promise<any | null>;
+  abstract findById(propertyId: string): Promise<Property | null>;
   abstract findPropertyHostId(propertyId: string): Promise<string | null>;
   abstract hasConfirmedReservationOnDate(
     propertyId: string,
-    date: Date
+    date: Date,
   ): Promise<boolean>;
   abstract setAvailability(data: SetAvailabilityData): Promise<any>;
+  abstract findCalendarBetween(
+    propertyId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<AvailabilityCalendar[]>;
 }

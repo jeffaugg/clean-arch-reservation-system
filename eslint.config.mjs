@@ -5,6 +5,11 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
+  parser: "@typescript-eslint/parser",
+  parserOptions: {
+    project: "./tsconfig.eslint.json",
+    tsconfigRootDir: __dirname
+  },
   {
     ignores: ['eslint.config.mjs'],
   },
