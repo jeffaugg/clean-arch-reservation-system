@@ -9,6 +9,7 @@ import {
   PaginationParams,
   SetAvailabilityData,
 } from "./interface/property.repository";
+import { AvailabilityCalendar } from "generated/prisma/client";
 
 @Injectable()
 export class PropertyRepository implements IPropertyRepository {
@@ -194,4 +195,20 @@ export class PropertyRepository implements IPropertyRepository {
       },
     });
   }
+  async findCalendarBetween(
+  propertyId: string,
+  startDate: Date,
+  endDate: Date,
+): Promise<AvailabilityCalendar[]> {
+  return this.prisma.availabilityCalendar.findMany({
+    where: {
+      propertyId,
+      date: {
+        gte: startDate,
+        lt: endDate,
+      },
+    },
+    orderBy: { date: "asc" },
+  });
+}
 }

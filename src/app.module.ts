@@ -9,6 +9,7 @@ import { AuthModule } from "./modules/auth/auth.module.js";
 import { PropertyModule } from "./modules/properties/property.module.js";
 import { StorageModule } from "./modules/storage/storage.module.js";
 import { StorageProviderModule } from "./shared/container/providers/storage/storage.module.js";
+import { ReservationModule } from "./modules/reservations/reservation.module.js";
 
 @Global()
 @Module({
@@ -18,6 +19,7 @@ import { StorageProviderModule } from "./shared/container/providers/storage/stor
     StorageProviderModule,
     AmenityModule,
     PropertyModule,
+    ReservationModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
