@@ -10,6 +10,7 @@ import { PropertyModule } from "./modules/properties/property.module.js";
 import { StorageModule } from "./modules/storage/storage.module.js";
 import { StorageProviderModule } from "./shared/container/providers/storage/storage.module.js";
 import { ReservationModule } from "./modules/reservations/reservation.module.js";
+import { PaymentModule } from "./modules/payments/payment.module.js";
 
 @Global()
 @Module({
@@ -20,6 +21,7 @@ import { ReservationModule } from "./modules/reservations/reservation.module.js"
     AmenityModule,
     PropertyModule,
     ReservationModule,
+    PaymentModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

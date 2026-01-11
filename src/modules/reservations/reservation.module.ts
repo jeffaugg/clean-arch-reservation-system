@@ -7,7 +7,7 @@ import { ReservationRepository } from "./repositories/reservation.repository";
 import { PropertyModule } from "../properties/property.module";
 
 @Module({
-imports: [PropertyModule],
+  imports: [PropertyModule],
   controllers: [ReservationController],
   providers: [
     PrismaService,
