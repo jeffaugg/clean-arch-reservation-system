@@ -4,7 +4,7 @@ import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 
 export const createReservationSchema = z.object({
-  propertyId: z.string().uuid(),
+  propertyId: z.string(),
   checkInDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
     message: "Invalid date format",
   }),
