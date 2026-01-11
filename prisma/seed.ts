@@ -1,10 +1,8 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient, Prisma } from "generated/prisma/client"; // se não resolver, use path relativo
 import * as bcrypt from "bcryptjs";
 
-function dateOnlyUtc(date: string): Date {
-  return new Date(`${date}T00:00:00.000Z`);
-}
+const { PrismaClient, Prisma } =
+  require("../generated/prisma/client.js") as typeof import("../generated/prisma/client");
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({
@@ -12,9 +10,16 @@ const prisma = new PrismaClient({
   }),
 });
 
+function dateOnlyUtc(date: string): Date {
+  return new Date(`${date}T00:00:00.000Z`);
+}
+
 async function main() {
   console.log("Starting seed...");
 
+  // -------------------------
+  // 1) Amenities
+  // -------------------------
   const amenities = [
     { name: "Wi-Fi", iconUrl: "https://cdn-icons-png.flaticon.com/512/93/93158.png" },
     { name: "Piscina", iconUrl: "https://cdn-icons-png.flaticon.com/512/2917/2917995.png" },
@@ -39,12 +44,16 @@ async function main() {
   const amenityRows = await prisma.amenity.findMany();
   const amenityIdByName = new Map(amenityRows.map((a) => [a.name, a.id]));
 
+  // -------------------------
+  // 2) Users (hosts + guests)
+  // -------------------------
   const passwordHash = await bcrypt.hash("123456", 10);
 
   const host1 = await prisma.user.upsert({
     where: { email: "host1@mail.com" },
     update: { name: "Host 1" },
     create: {
+      id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
       name: "Host 1",
       email: "host1@mail.com",
       passwordHash,
@@ -56,6 +65,7 @@ async function main() {
     where: { email: "host2@mail.com" },
     update: { name: "Host 2" },
     create: {
+      id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
       name: "Host 2",
       email: "host2@mail.com",
       passwordHash,
@@ -63,6 +73,33 @@ async function main() {
     },
   });
 
+  const guest1 = await prisma.user.upsert({
+    where: { email: "guest1@mail.com" },
+    update: { name: "Guest 1" },
+    create: {
+      id: "cccccccc-cccc-cccc-cccc-cccccccccccc",
+      name: "Guest 1",
+      email: "guest1@mail.com",
+      passwordHash,
+      phone: "+55 85 99999-1001",
+    },
+  });
+
+  const guest2 = await prisma.user.upsert({
+    where: { email: "guest2@mail.com" },
+    update: { name: "Guest 2" },
+    create: {
+      id: "dddddddd-dddd-dddd-dddd-dddddddddddd",
+      name: "Guest 2",
+      email: "guest2@mail.com",
+      passwordHash,
+      phone: "+55 88 99999-2002",
+    },
+  });
+
+  // -------------------------
+  // 3) Properties (+ images + amenities + calendar)
+  // -------------------------
   const properties = [
     {
       id: "11111111-1111-1111-1111-111111111111",
@@ -71,8 +108,8 @@ async function main() {
       description: "Loft completo, confortável e bem localizado. Ideal para casal.",
       address: "Av. Beira Mar, 1000",
       city: "Fortaleza",
-      latitude: " -3.71722",
-      longitude: "-38.54337",
+      latitude: "-3.71722000",
+      longitude: "-38.54337000",
       maxGuests: 2,
       basePrice: "180.00",
       cleaningFee: "50.00",
@@ -81,6 +118,7 @@ async function main() {
         "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267",
       ],
       amenityNames: ["Wi-Fi", "Ar Condicionado", "Cozinha", "TV"],
+      // calendário pra testar bloqueio e override
       calendar: [
         { date: "2026-01-15", isBlocked: true },
         { date: "2026-01-20", isBlocked: false, priceOverride: "220.00" },
@@ -93,8 +131,8 @@ async function main() {
       description: "Casa ampla com lazer completo. Ótima para família e amigos.",
       address: "Rua das Palmeiras, 250",
       city: "Fortaleza",
-      latitude: " -3.73186",
-      longitude: "-38.52667",
+      latitude: "-3.73186000",
+      longitude: "-38.52667000",
       maxGuests: 8,
       basePrice: "520.00",
       cleaningFee: "120.00",
@@ -115,8 +153,8 @@ async function main() {
       description: "Perto de tudo, fácil acesso, confortável e seguro.",
       address: "Rua Central, 45",
       city: "Quixadá",
-      latitude: " -4.96611",
-      longitude: "-39.01528",
+      latitude: "-4.96611000",
+      longitude: "-39.01528000",
       maxGuests: 4,
       basePrice: "160.00",
       cleaningFee: "40.00",
@@ -125,9 +163,7 @@ async function main() {
         "https://images.unsplash.com/photo-1501183638710-841dd1904471",
       ],
       amenityNames: ["Wi-Fi", "Estacionamento", "Cozinha", "TV", "Lavanderia"],
-      calendar: [
-        { date: "2026-02-01", isBlocked: false, priceOverride: "190.00" },
-      ],
+      calendar: [{ date: "2026-02-01", isBlocked: false, priceOverride: "190.00" }],
     },
   ];
 
@@ -172,11 +208,7 @@ async function main() {
               date: dateOnlyUtc(c.date),
               isBlocked: c.isBlocked,
             };
-
-            if (c.priceOverride) {
-              payload.priceOverride = new Prisma.Decimal(c.priceOverride);
-            }
-
+            if (c.priceOverride) payload.priceOverride = new Prisma.Decimal(c.priceOverride);
             return payload;
           }),
         },
@@ -184,7 +216,86 @@ async function main() {
     });
   }
 
+  // -------------------------
+  // 4) Reservations (pra testar overlapping + hold 30min)
+  // -------------------------
+  // A) Uma reserva CONFIRMED que bloqueia o período 2026-01-08..2026-01-10 no property 1
+  await prisma.reservation.upsert({
+    where: { id: "r1111111-1111-1111-1111-111111111111" },
+    update: {},
+    create: {
+      id: "r1111111-1111-1111-1111-111111111111",
+      propertyId: "11111111-1111-1111-1111-111111111111",
+      guestId: guest1.id,
+      checkIn: dateOnlyUtc("2026-01-08"),
+      checkOut: dateOnlyUtc("2026-01-10"),
+      guestCount: 2,
+      totalPrice: new Prisma.Decimal("410.00"), // valor “fixo” só pra existir
+      status: "CONFIRMED",
+    },
+  });
+
+  // B) Uma reserva PENDING recente (criada agora) que deve bloquear por 30min
+  await prisma.reservation.upsert({
+    where: { id: "r2222222-2222-2222-2222-222222222222" },
+    update: {},
+    create: {
+      id: "r2222222-2222-2222-2222-222222222222",
+      propertyId: "33333333-3333-3333-3333-333333333333",
+      guestId: guest2.id,
+      checkIn: dateOnlyUtc("2026-02-10"),
+      checkOut: dateOnlyUtc("2026-02-12"),
+      guestCount: 2,
+      totalPrice: new Prisma.Decimal("360.00"),
+      status: "PENDING",
+      // createdAt default = now() => deve bloquear
+    },
+  });
+
+  // C) Uma reserva PENDING antiga (mais de 30min) que NÃO deve bloquear
+  // upsert não deixa setar createdAt depois? deixa sim em create.
+  await prisma.reservation.upsert({
+    where: { id: "r3333333-3333-3333-3333-333333333333" },
+    update: {},
+    create: {
+      id: "r3333333-3333-3333-3333-333333333333",
+      propertyId: "22222222-2222-2222-2222-222222222222",
+      guestId: guest1.id,
+      checkIn: dateOnlyUtc("2026-01-25"),
+      checkOut: dateOnlyUtc("2026-01-27"),
+      guestCount: 4,
+      totalPrice: new Prisma.Decimal("1160.00"),
+      status: "PENDING",
+      createdAt: new Date(Date.now() - 31 * 60 * 1000), // 31 min atrás
+    },
+  });
+
+  // -------------------------
+  // 5) Payments (opcional pra testar módulo de pagamento)
+  // -------------------------
+  await prisma.payment.upsert({
+    where: { id: "p11111111-1111-1111-1111-111111111111" },
+    update: {},
+    create: {
+      id: "p11111111-1111-1111-1111-111111111111",
+      reservationId: "r2222222-2222-2222-2222-222222222222",
+      provider: "mock",
+      transactionId: "tx_mock_1",
+      amount: new Prisma.Decimal("360.00"),
+      status: "PENDING",
+    },
+  });
+
   console.log("Seed completed!");
+  console.log("Users:");
+  console.log("- host1@mail.com / 123456");
+  console.log("- host2@mail.com / 123456");
+  console.log("- guest1@mail.com / 123456");
+  console.log("- guest2@mail.com / 123456");
+  console.log("Properties IDs:");
+  console.log("- 11111111-1111-1111-1111-111111111111 (Fortaleza, bloqueio 2026-01-15, override 2026-01-20)");
+  console.log("- 22222222-2222-2222-2222-222222222222 (Fortaleza, bloqueios 2026-01-12/13)");
+  console.log("- 33333333-3333-3333-3333-333333333333 (Quixadá)");
 }
 
 main()
