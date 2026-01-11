@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/shared/database/prisma.service";
 import { IReservationRepository } from "./interface/reservation.repository";
 import { CreateReservationInput } from "../dto/create-reservation-input.dto";
-import { Reservation } from "generated/prisma/client";
+import { Reservation, ReservationStatus } from "generated/prisma/client";
 
 @Injectable()
 export class ReservationRepository implements IReservationRepository {
@@ -30,5 +30,24 @@ export class ReservationRepository implements IReservationRepository {
       },
       orderBy: { checkIn: "asc" },
     });
+  }
+
+  async findById(id: string): Promise<Reservation | null> {
+    return this.prisma.reservation.findUnique({
+      where: { id },
+    });
+  }
+
+  async updateStatusIfPending(
+    id: string,
+    nextStatus: ReservationStatus,
+  ): Promise<number> {
+
+    const result = await this.prisma.reservation.updateMany({
+      where: { id, status: ReservationStatus.PENDING },
+      data: { status: nextStatus },
+    });
+
+    return result.count;
   }
 }
