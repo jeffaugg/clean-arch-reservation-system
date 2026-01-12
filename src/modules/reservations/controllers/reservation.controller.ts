@@ -8,7 +8,6 @@ import {
   Patch,
   Post,
   Req,
-  UseGuards,
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
@@ -17,6 +16,7 @@ import {
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
+import { Request } from "express";
 import { ActiveUserId } from "src/shared/decorators/activeUserId";
 import { ReservationResponseDto } from "../dto/reservation-response.dto";
 import { ListGuestReservationsUseCase } from "../user-cases/list-guest-reservations.use-case";
@@ -25,11 +25,13 @@ import { CreateReservationUseCase } from "../user-cases/create-reservation.use-c
 import { CancelReservationUseCase } from "../user-cases/cancel-reservation.use-case";
 import { CancelReservationResponseDto } from "../dto/cancel-reservation.dto";
 import {
-  CreateReservationData,
   CreateReservationDto,
   createReservationSchema,
 } from "../dto/create-reservation.dto";
 import { CreateReservationResponse } from "../dto/create-reservation-response";
+import { CreateReviewDto, createReviewSchema } from "../dto/create-review.dto";
+import { CreateReviewUseCase } from "../user-cases/create-review.use-case";
+
 type AuthedRequest = Request & { userId: string };
 
 @ApiTags("reservations")
@@ -41,6 +43,7 @@ export class ReservationController {
     private readonly listGuestReservationsUseCase: ListGuestReservationsUseCase,
     private readonly listHostReservationsUseCase: ListHostReservationsUseCase,
     private readonly cancelReservationUseCase: CancelReservationUseCase,
+    private readonly createReviewUseCase: CreateReviewUseCase,
   ) {}
 
   @Post()
@@ -52,7 +55,7 @@ export class ReservationController {
     @Req() req: AuthedRequest,
   ): Promise<CreateReservationResponse> {
     const guestId = req.userId;
-    const data: CreateReservationData = createReservationSchema.parse(body);
+    const data = createReservationSchema.parse(body);
     return this.createReservationUseCase.execute(data, guestId);
   }
 
@@ -117,5 +120,42 @@ export class ReservationController {
   ): Promise<CancelReservationResponseDto> {
     const userId = req.userId;
     return this.cancelReservationUseCase.execute(reservationId, userId);
+  }
+
+  @Post(":id/reviews")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Criar review de uma reserva" })
+  @ApiParam({
+    name: "id",
+    description: "ID da reserva a ser avaliada",
+    example: "123e4567-e89b-12d3-a456-426614174000",
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "Review criada com sucesso",
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: "Reserva ainda não pode ser avaliada",
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: "Apenas o hóspede da reserva pode avaliá-la",
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "Reserva não encontrada",
+  })
+  async createReview(
+    @Param("id") reservationId: string,
+    @Req() req: AuthedRequest,
+    @Body() body: CreateReviewDto,
+  ): Promise<{ message: string }> {
+    const guestId = req.userId;
+    const data = createReviewSchema.parse(body);
+
+    await this.createReviewUseCase.execute(reservationId, guestId, data);
+
+    return { message: "Review created successfully" };
   }
 }
