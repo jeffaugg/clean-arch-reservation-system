@@ -1,14 +1,13 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import * as bcrypt from "bcryptjs";
+import { Prisma, PrismaClient } from "generated/prisma/client";
+import { Pool } from "pg";
 
-const { PrismaClient, Prisma } =
-  require("../generated/prisma/client.js") as typeof import("../generated/prisma/client");
-
-const prisma = new PrismaClient({
-  adapter: new PrismaPg({
-    connectionString: process.env.DATABASE_URL as string,
-  }),
-});
+// Configuração do Adapter para rodar em script isolado
+const connectionString = `${process.env.DATABASE_URL}`;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 function dateOnlyUtc(date: string): Date {
   return new Date(`${date}T00:00:00.000Z`);
@@ -21,16 +20,46 @@ async function main() {
   // 1) Amenities
   // -------------------------
   const amenities = [
-    { name: "Wi-Fi", iconUrl: "https://cdn-icons-png.flaticon.com/512/93/93158.png" },
-    { name: "Piscina", iconUrl: "https://cdn-icons-png.flaticon.com/512/2917/2917995.png" },
-    { name: "Ar Condicionado", iconUrl: "https://cdn-icons-png.flaticon.com/512/2331/2331970.png" },
-    { name: "Estacionamento", iconUrl: "https://cdn-icons-png.flaticon.com/512/3097/3097038.png" },
-    { name: "Cozinha", iconUrl: "https://cdn-icons-png.flaticon.com/512/1198/1198314.png" },
-    { name: "TV", iconUrl: "https://cdn-icons-png.flaticon.com/512/716/716429.png" },
-    { name: "Academia", iconUrl: "https://cdn-icons-png.flaticon.com/512/2936/2936886.png" },
-    { name: "Pet Friendly", iconUrl: "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
-    { name: "Churrasqueira", iconUrl: "https://cdn-icons-png.flaticon.com/512/3448/3448653.png" },
-    { name: "Lavanderia", iconUrl: "https://cdn-icons-png.flaticon.com/512/2917/2917242.png" },
+    {
+      name: "Wi-Fi",
+      iconUrl: "https://cdn-icons-png.flaticon.com/512/93/93158.png",
+    },
+    {
+      name: "Piscina",
+      iconUrl: "https://cdn-icons-png.flaticon.com/512/2917/2917995.png",
+    },
+    {
+      name: "Ar Condicionado",
+      iconUrl: "https://cdn-icons-png.flaticon.com/512/2331/2331970.png",
+    },
+    {
+      name: "Estacionamento",
+      iconUrl: "https://cdn-icons-png.flaticon.com/512/3097/3097038.png",
+    },
+    {
+      name: "Cozinha",
+      iconUrl: "https://cdn-icons-png.flaticon.com/512/1198/1198314.png",
+    },
+    {
+      name: "TV",
+      iconUrl: "https://cdn-icons-png.flaticon.com/512/716/716429.png",
+    },
+    {
+      name: "Academia",
+      iconUrl: "https://cdn-icons-png.flaticon.com/512/2936/2936886.png",
+    },
+    {
+      name: "Pet Friendly",
+      iconUrl: "https://cdn-icons-png.flaticon.com/512/616/616408.png",
+    },
+    {
+      name: "Churrasqueira",
+      iconUrl: "https://cdn-icons-png.flaticon.com/512/3448/3448653.png",
+    },
+    {
+      name: "Lavanderia",
+      iconUrl: "https://cdn-icons-png.flaticon.com/512/2917/2917242.png",
+    },
   ];
 
   for (const amenity of amenities) {
@@ -105,7 +134,8 @@ async function main() {
       id: "11111111-1111-1111-1111-111111111111",
       hostId: host1.id,
       title: "Loft moderno perto da praia",
-      description: "Loft completo, confortável e bem localizado. Ideal para casal.",
+      description:
+        "Loft completo, confortável e bem localizado. Ideal para casal.",
       address: "Av. Beira Mar, 1000",
       city: "Fortaleza",
       latitude: "-3.71722000",
@@ -118,7 +148,6 @@ async function main() {
         "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267",
       ],
       amenityNames: ["Wi-Fi", "Ar Condicionado", "Cozinha", "TV"],
-      // calendário pra testar bloqueio e override
       calendar: [
         { date: "2026-01-15", isBlocked: true },
         { date: "2026-01-20", isBlocked: false, priceOverride: "220.00" },
@@ -128,7 +157,8 @@ async function main() {
       id: "22222222-2222-2222-2222-222222222222",
       hostId: host1.id,
       title: "Casa com piscina e churrasqueira",
-      description: "Casa ampla com lazer completo. Ótima para família e amigos.",
+      description:
+        "Casa ampla com lazer completo. Ótima para família e amigos.",
       address: "Rua das Palmeiras, 250",
       city: "Fortaleza",
       latitude: "-3.73186000",
@@ -140,7 +170,13 @@ async function main() {
         "https://images.unsplash.com/photo-1564013799919-ab600027ffc6",
         "https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6",
       ],
-      amenityNames: ["Wi-Fi", "Piscina", "Churrasqueira", "Estacionamento", "Pet Friendly"],
+      amenityNames: [
+        "Wi-Fi",
+        "Piscina",
+        "Churrasqueira",
+        "Estacionamento",
+        "Pet Friendly",
+      ],
       calendar: [
         { date: "2026-01-12", isBlocked: true },
         { date: "2026-01-13", isBlocked: true },
@@ -163,7 +199,9 @@ async function main() {
         "https://images.unsplash.com/photo-1501183638710-841dd1904471",
       ],
       amenityNames: ["Wi-Fi", "Estacionamento", "Cozinha", "TV", "Lavanderia"],
-      calendar: [{ date: "2026-02-01", isBlocked: false, priceOverride: "190.00" }],
+      calendar: [
+        { date: "2026-02-01", isBlocked: false, priceOverride: "190.00" },
+      ],
     },
   ];
 
@@ -190,25 +228,23 @@ async function main() {
         maxGuests: p.maxGuests,
         basePrice: new Prisma.Decimal(p.basePrice),
         cleaningFee: new Prisma.Decimal(p.cleaningFee),
-
         images: {
           create: p.images.map((url, idx) => ({
             url,
             isMain: idx === 0,
           })),
         },
-
         amenities: {
           create: amenityIds.map((amenityId) => ({ amenityId })),
         },
-
         calendar: {
           create: p.calendar.map((c) => {
             const payload: any = {
               date: dateOnlyUtc(c.date),
               isBlocked: c.isBlocked,
             };
-            if (c.priceOverride) payload.priceOverride = new Prisma.Decimal(c.priceOverride);
+            if (c.priceOverride)
+              payload.priceOverride = new Prisma.Decimal(c.priceOverride);
             return payload;
           }),
         },
@@ -217,9 +253,9 @@ async function main() {
   }
 
   // -------------------------
-  // 4) Reservations (pra testar overlapping + hold 30min)
+  // 4) Reservations
   // -------------------------
-  // A) Uma reserva CONFIRMED que bloqueia o período 2026-01-08..2026-01-10 no property 1
+  // A) CONFIRMED
   await prisma.reservation.upsert({
     where: { id: "r1111111-1111-1111-1111-111111111111" },
     update: {},
@@ -230,12 +266,12 @@ async function main() {
       checkIn: dateOnlyUtc("2026-01-08"),
       checkOut: dateOnlyUtc("2026-01-10"),
       guestCount: 2,
-      totalPrice: new Prisma.Decimal("410.00"), // valor “fixo” só pra existir
+      totalPrice: new Prisma.Decimal("410.00"),
       status: "CONFIRMED",
     },
   });
 
-  // B) Uma reserva PENDING recente (criada agora) que deve bloquear por 30min
+  // B) PENDING (Recente)
   await prisma.reservation.upsert({
     where: { id: "r2222222-2222-2222-2222-222222222222" },
     update: {},
@@ -248,12 +284,10 @@ async function main() {
       guestCount: 2,
       totalPrice: new Prisma.Decimal("360.00"),
       status: "PENDING",
-      // createdAt default = now() => deve bloquear
     },
   });
 
-  // C) Uma reserva PENDING antiga (mais de 30min) que NÃO deve bloquear
-  // upsert não deixa setar createdAt depois? deixa sim em create.
+  // C) PENDING (Antigo)
   await prisma.reservation.upsert({
     where: { id: "r3333333-3333-3333-3333-333333333333" },
     update: {},
@@ -266,12 +300,12 @@ async function main() {
       guestCount: 4,
       totalPrice: new Prisma.Decimal("1160.00"),
       status: "PENDING",
-      createdAt: new Date(Date.now() - 31 * 60 * 1000), // 31 min atrás
+      createdAt: new Date(Date.now() - 31 * 60 * 1000),
     },
   });
 
   // -------------------------
-  // 5) Payments (opcional pra testar módulo de pagamento)
+  // 5) Payments
   // -------------------------
   await prisma.payment.upsert({
     where: { id: "p11111111-1111-1111-1111-111111111111" },
@@ -287,15 +321,6 @@ async function main() {
   });
 
   console.log("Seed completed!");
-  console.log("Users:");
-  console.log("- host1@mail.com / 123456");
-  console.log("- host2@mail.com / 123456");
-  console.log("- guest1@mail.com / 123456");
-  console.log("- guest2@mail.com / 123456");
-  console.log("Properties IDs:");
-  console.log("- 11111111-1111-1111-1111-111111111111 (Fortaleza, bloqueio 2026-01-15, override 2026-01-20)");
-  console.log("- 22222222-2222-2222-2222-222222222222 (Fortaleza, bloqueios 2026-01-12/13)");
-  console.log("- 33333333-3333-3333-3333-333333333333 (Quixadá)");
 }
 
 main()
@@ -305,4 +330,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await pool.end(); // Fecha conexão do Pool também
   });

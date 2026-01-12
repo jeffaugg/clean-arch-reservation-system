@@ -1,4 +1,8 @@
-import { Prisma, Reservation, ReservationStatus } from "generated/prisma/client";
+import {
+  Prisma,
+  Reservation,
+  ReservationStatus,
+} from "generated/prisma/client";
 import { CreateReservationInput } from "../../dto/create-reservation-input.dto";
 
 export abstract class IReservationRepository {
@@ -9,4 +13,6 @@ export abstract class IReservationRepository {
     id: string,
     nextStatus: ReservationStatus,
   ): Promise<number>;
+  abstract findByGuestId(guestId: string): Promise<Reservation[]>;
+  abstract findByHostId(hostId: string): Promise<Reservation[]>;
 }

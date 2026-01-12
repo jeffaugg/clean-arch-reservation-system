@@ -8,8 +8,13 @@ import { CreateReservationDto } from "../dto/create-reservation.dto";
 import { IReservationRepository } from "../repositories/interface/reservation.repository";
 import { ReservationResponseDto } from "../dto/reservation-response.dto";
 import { IPropertyRepository } from "src/modules/properties/repositories/interface/property.repository";
-import { Prisma, Reservation, ReservationStatus } from "generated/prisma/client";
+import {
+  Prisma,
+  Reservation,
+  ReservationStatus,
+} from "generated/prisma/client";
 import { CreateReservationInput } from "../dto/create-reservation-input.dto";
+import { CreateReservationResponse } from "../dto/create-reservation-response";
 
 function parseDateOnlyUtc(dateStr: string): Date {
   return new Date(`${dateStr}T00:00:00.000Z`);
@@ -42,7 +47,7 @@ export class CreateReservationUseCase {
   async execute(
     data: CreateReservationDto,
     guestId: string,
-  ): Promise<ReservationResponseDto> {
+  ): Promise<CreateReservationResponse> {
     const checkIn = parseDateOnlyUtc(data.checkInDate);
     const checkOut = parseDateOnlyUtc(data.checkOutDate);
 
@@ -128,6 +133,6 @@ export class CreateReservationUseCase {
     };
 
     const reservation = await this.reservationRepository.create(input);
-    return ReservationResponseDto.fromEntity(reservation);
+    return CreateReservationResponse.fromEntity(reservation);
   }
 }
