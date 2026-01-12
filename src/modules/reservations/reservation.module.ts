@@ -9,6 +9,10 @@ import { PropertyModule } from "../properties/property.module";
 import { ListHostReservationsUseCase } from "./user-cases/list-host-reservations.use-case";
 import { ListGuestReservationsUseCase } from "./user-cases/list-guest-reservations.use-case";
 
+import { ReviewRepository } from "./repositories/review.repository";
+import { IReviewRepository } from "./repositories/interface/review.repository";
+import { CreateReviewUseCase } from "./user-cases/create-review.use-case";
+
 @Module({
   imports: [PropertyModule],
   controllers: [ReservationController],
@@ -18,11 +22,16 @@ import { ListGuestReservationsUseCase } from "./user-cases/list-guest-reservatio
     ListHostReservationsUseCase,
     ListGuestReservationsUseCase,
     CancelReservationUseCase,
+    CreateReviewUseCase,
     {
       provide: IReservationRepository,
       useClass: ReservationRepository,
     },
+    {
+      provide: IReviewRepository,
+      useClass: ReviewRepository,
+    },
   ],
-  exports: [IReservationRepository],
+  exports: [IReservationRepository, IReviewRepository],
 })
 export class ReservationModule {}
