@@ -13,6 +13,10 @@ export abstract class IReservationRepository {
     id: string,
     nextStatus: ReservationStatus,
   ): Promise<number>;
+  abstract updateStatus(
+    id: string,
+    status: ReservationStatus,
+  ): Promise<Reservation>;
   abstract findByGuestId(guestId: string): Promise<Reservation[]>;
   abstract findByHostId(hostId: string): Promise<Reservation[]>;
 }

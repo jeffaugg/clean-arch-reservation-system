@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { PrismaService } from "src/shared/database/prisma.service";
 import { ReservationController } from "./controllers/reservation.controller";
 import { CreateReservationUseCase } from "./user-cases/create-reservation.use-case";
+import { CancelReservationUseCase } from "./user-cases/cancel-reservation.use-case";
 import { IReservationRepository } from "./repositories/interface/reservation.repository";
 import { ReservationRepository } from "./repositories/reservation.repository";
 import { PropertyModule } from "../properties/property.module";
@@ -16,6 +17,7 @@ import { ListGuestReservationsUseCase } from "./user-cases/list-guest-reservatio
     CreateReservationUseCase,
     ListHostReservationsUseCase,
     ListGuestReservationsUseCase,
+    CancelReservationUseCase,
     {
       provide: IReservationRepository,
       useClass: ReservationRepository,

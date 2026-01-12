@@ -77,4 +77,14 @@ export class ReservationRepository implements IReservationRepository {
       orderBy: { checkIn: "asc" },
     });
   }
+
+  async updateStatus(
+    id: string,
+    status: ReservationStatus,
+  ): Promise<Reservation> {
+    return this.prisma.reservation.update({
+      where: { id },
+      data: { status },
+    });
+  }
 }
