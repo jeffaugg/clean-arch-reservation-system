@@ -50,6 +50,34 @@ export class ReservationRepository implements IReservationRepository {
     return result.count;
   }
 
+  async findByGuestId(guestId: string) {
+    return this.prisma.reservation.findMany({
+      where: { guestId },
+      include: {
+        property: {
+          include: { images: true },
+        },
+      },
+      orderBy: { checkIn: "asc" },
+    });
+  }
+
+  async findByHostId(hostId: string) {
+    return this.prisma.reservation.findMany({
+      where: {
+        property: {
+          hostId: hostId,
+        },
+      },
+      include: {
+        property: {
+          include: { images: true },
+        },
+      },
+      orderBy: { checkIn: "asc" },
+    });
+  }
+
   async updateStatus(
     id: string,
     status: ReservationStatus,

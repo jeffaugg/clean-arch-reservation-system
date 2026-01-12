@@ -6,6 +6,8 @@ import { CancelReservationUseCase } from "./user-cases/cancel-reservation.use-ca
 import { IReservationRepository } from "./repositories/interface/reservation.repository";
 import { ReservationRepository } from "./repositories/reservation.repository";
 import { PropertyModule } from "../properties/property.module";
+import { ListHostReservationsUseCase } from "./user-cases/list-host-reservations.use-case";
+import { ListGuestReservationsUseCase } from "./user-cases/list-guest-reservations.use-case";
 
 @Module({
   imports: [PropertyModule],
@@ -13,6 +15,8 @@ import { PropertyModule } from "../properties/property.module";
   providers: [
     PrismaService,
     CreateReservationUseCase,
+    ListHostReservationsUseCase,
+    ListGuestReservationsUseCase,
     CancelReservationUseCase,
     {
       provide: IReservationRepository,
