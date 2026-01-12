@@ -7,6 +7,7 @@ import {
   ListPropertiesFilters,
   PaginatedResult,
   PaginationParams,
+  PropertyReviewModel,
   SetAvailabilityData,
 } from "./interface/property.repository";
 import { AvailabilityCalendar } from "generated/prisma/client";
@@ -27,7 +28,7 @@ export class PropertyRepository implements IPropertyRepository {
 
   async listProperties(
     filters: ListPropertiesFilters,
-    pagination: PaginationParams
+    pagination: PaginationParams,
   ): Promise<PaginatedResult<any>> {
     const where: any = {};
 
@@ -157,7 +158,7 @@ export class PropertyRepository implements IPropertyRepository {
 
   async hasConfirmedReservationOnDate(
     propertyId: string,
-    date: Date
+    date: Date,
   ): Promise<boolean> {
     const count = await this.prisma.reservation.count({
       where: {
@@ -195,20 +196,55 @@ export class PropertyRepository implements IPropertyRepository {
       },
     });
   }
+
   async findCalendarBetween(
-  propertyId: string,
-  startDate: Date,
-  endDate: Date,
-): Promise<AvailabilityCalendar[]> {
-  return this.prisma.availabilityCalendar.findMany({
-    where: {
-      propertyId,
-      date: {
-        gte: startDate,
-        lt: endDate,
+    propertyId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<AvailabilityCalendar[]> {
+    return this.prisma.availabilityCalendar.findMany({
+      where: {
+        propertyId,
+        date: {
+          gte: startDate,
+          lt: endDate,
+        },
       },
-    },
-    orderBy: { date: "asc" },
-  });
-}
+      orderBy: { date: "asc" },
+    });
+  }
+
+  async findReviewsByPropertyId(
+    propertyId: string,
+  ): Promise<PropertyReviewModel[]> {
+    const reviews = await this.prisma.review.findMany({
+      where: {
+        reservation: {
+          propertyId,
+        },
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return reviews.map((review) => ({
+      id: review.id,
+      rating: review.rating,
+      comment: review.comment,
+      createdAt: review.createdAt,
+      author: {
+        id: review.author.id,
+        name: review.author.name,
+      },
+    }));
+  }
 }
