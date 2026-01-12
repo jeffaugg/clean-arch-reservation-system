@@ -38,6 +38,17 @@ export interface SetAvailabilityData {
   priceOverride?: number;
 }
 
+export interface PropertyReviewModel {
+  id: string;
+  rating: number;
+  comment: string;
+  createdAt: Date;
+  author: {
+    id: string;
+    name: string;
+  };
+}
+
 export abstract class IPropertyRepository {
   abstract createProperty(data: CreatePropertyData): Promise<any>;
   abstract validateAmenityIds(amenityIds: string[]): Promise<boolean>;
@@ -57,4 +68,8 @@ export abstract class IPropertyRepository {
     startDate: Date,
     endDate: Date,
   ): Promise<AvailabilityCalendar[]>;
+
+  abstract findReviewsByPropertyId(
+    propertyId: string,
+  ): Promise<PropertyReviewModel[]>;
 }

@@ -27,6 +27,8 @@ import { CreatePropertyUseCase } from "../use-cases/create-property.use-case";
 import { GetPropertyDetailsUseCase } from "../use-cases/get-property-details.use-case";
 import { ListPropertiesUseCase } from "../use-cases/list-properties.use-case";
 import { SetAvailabilityUseCase } from "../use-cases/set-availability.use-case";
+import { PropertyReviewResponseDto } from "../dto/property-review-response.dto";
+import { ListPropertyReviewsUseCase } from "../use-cases/list-property-reviews.use-case";
 
 @ApiTags("properties")
 @Controller("properties")
@@ -35,7 +37,8 @@ export class PropertyController {
     private readonly createPropertyUseCase: CreatePropertyUseCase,
     private readonly listPropertiesUseCase: ListPropertiesUseCase,
     private readonly getPropertyDetailsUseCase: GetPropertyDetailsUseCase,
-    private readonly setAvailabilityUseCase: SetAvailabilityUseCase
+    private readonly setAvailabilityUseCase: SetAvailabilityUseCase,
+    private readonly listPropertyReviewsUseCase: ListPropertyReviewsUseCase,
   ) {}
 
   @Get()
@@ -48,7 +51,7 @@ export class PropertyController {
     type: PaginatedPropertiesDto,
   })
   async list(
-    @Query() query: ListPropertiesQueryDto
+    @Query() query: ListPropertiesQueryDto,
   ): Promise<PaginatedPropertiesDto> {
     return this.listPropertiesUseCase.execute({
       page: Number(query.page) || 1,
@@ -76,6 +79,27 @@ export class PropertyController {
     return this.getPropertyDetailsUseCase.execute(id);
   }
 
+  @Get(":id/reviews")
+  @IsPublic()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Listar reviews de um imóvel" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "Lista de reviews do imóvel",
+    type: [PropertyReviewResponseDto],
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "Imóvel não encontrado",
+  })
+  async listReviews(
+    @Param("id") propertyId: string,
+  ): Promise<PropertyReviewResponseDto[]> {
+    const reviews = await this.listPropertyReviewsUseCase.execute(propertyId);
+
+    return PropertyReviewResponseDto.fromModels(reviews);
+  }
+
   @Post()
   @ApiBearerAuth()
   @HttpCode(HttpStatus.CREATED)
@@ -91,7 +115,7 @@ export class PropertyController {
   })
   async create(
     @Body() dto: CreatePropertyDto,
-    @ActiveUserId() hostId: string
+    @ActiveUserId() hostId: string,
   ): Promise<PropertyResponseDto> {
     return this.createPropertyUseCase.execute(hostId, dto);
   }
@@ -120,7 +144,7 @@ export class PropertyController {
   async setAvailability(
     @Param("id") propertyId: string,
     @Body() dto: SetAvailabilityDto,
-    @ActiveUserId() hostId: string
+    @ActiveUserId() hostId: string,
   ): Promise<AvailabilityResponseDto> {
     return this.setAvailabilityUseCase.execute({
       propertyId,

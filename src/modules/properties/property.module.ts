@@ -7,6 +7,7 @@ import { CreatePropertyUseCase } from "./use-cases/create-property.use-case";
 import { GetPropertyDetailsUseCase } from "./use-cases/get-property-details.use-case";
 import { ListPropertiesUseCase } from "./use-cases/list-properties.use-case";
 import { SetAvailabilityUseCase } from "./use-cases/set-availability.use-case";
+import { ListPropertyReviewsUseCase } from "./use-cases/list-property-reviews.use-case";
 
 @Module({
   controllers: [PropertyController],
@@ -16,6 +17,7 @@ import { SetAvailabilityUseCase } from "./use-cases/set-availability.use-case";
     ListPropertiesUseCase,
     GetPropertyDetailsUseCase,
     SetAvailabilityUseCase,
+    ListPropertyReviewsUseCase,
     {
       provide: IPropertyRepository,
       useClass: PropertyRepository,
